@@ -39,7 +39,7 @@ unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 
 	for(int i=0; i<size; i++)
 	{
-		printf("%2x",result[i]);
+		printf("%02x",result[i]);
 	}
 	printf(" ");
 	return size;
