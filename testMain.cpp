@@ -5,5 +5,7 @@
 int main()
 {
 	RainbowTable rt(2,"testDictionary.txt");
+	rt.outputToFile("testDictionary.dict");
+	RainbowTable second("testDictionary.dict");
 	return 0;
 }

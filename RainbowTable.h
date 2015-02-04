@@ -10,12 +10,14 @@ using std::unordered_map;
 using std::cout;
 using std::string;
 using std::ifstream;
+using std::ofstream;
 class RainbowTable
 {
 	public:
 		RainbowTable(string fileName);
 		RainbowTable(int chainLength, string dictName);
-		RainbowTable(int numChains, int chainLength);
+		RainbowTable(int chainLength, string dictName, bool variants); 	//TODO: Write a version where we end up with ~1000 variants on each dictionary entry
+		RainbowTable(int numChains, int chainLength);			
 		void outputToFile(string fileName);
 		string lookup(char[]);
 		

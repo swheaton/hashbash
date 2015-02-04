@@ -66,6 +66,33 @@ RainbowTable::RainbowTable(int chainLength, string dictName)
 		cout << "\n";
 	}
 }
+		
+RainbowTable::RainbowTable(string fileName)
+{
+	ifstream fin(fileName);
+	string head, tail;
+
+	while(fin >> head >> tail)
+	{
+		cout << head << " -?-> " << tail << "\n";
+		table[tail] = head;
+	}
+
+	fin.close();
+	return;
+}
+		
+void RainbowTable::outputToFile(string fileName)
+{
+	ofstream fout(fileName);
+	
+	for(auto iter = table.begin(); iter != table.end(); ++iter)
+	{
+		fout << iter->second << " " << iter->first << "\n";
+	}
+	fout.close();
+	return;
+}
 
 /*string lookup(hash)
 {
