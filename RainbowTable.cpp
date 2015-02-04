@@ -1,5 +1,6 @@
 #include "RainbowTable.h"
 #define numChars 8
+#define keyspacesize 217180147158
 
 string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
@@ -14,9 +15,12 @@ string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reduc
 	}
 
 	n += reductionNumber;
-	string outString="";
-	for(int i=0; i<numChars; i++)
+	n %= keyspacesize;
+	string outString(1,(char) ((n % 26) + 'a'));
+	n /= 26;
+	while (n > 0)
 	{
+		n--;
 		outString += (char)((n % 26) + 'a');
 		n /= 26;
 	}
