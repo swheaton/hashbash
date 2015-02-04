@@ -1,8 +1,11 @@
+#ifndef RAINBOW_TABLE_H
+#define RAINBOW_TABLE_H
+
 #include <unordered_map>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 using std::unordered_map;
 using std::cout;
 using std::string;
@@ -17,7 +20,8 @@ class RainbowTable
 		string lookup(char[]);
 		
 	private:
-		string reduce(unsigned char* hashVal, int reductionNumber);
-		unsigned char* applyHash(string password);
+		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
+		unsigned int applyHash(string password, unsigned char* result);
 		unordered_map<string,string> table;
 };
+#endif

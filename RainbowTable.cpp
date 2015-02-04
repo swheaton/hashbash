@@ -1,9 +1,18 @@
 #include "RainbowTable.h"
 #define numChars 8
 
-string RainbowTable::reduce(unsigned char* hashVal, int reductionNumber)
+string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
-	uint64_t n = *((uint64_t*) hashVal);
+	uint64_t n;
+	if(size >= 8)
+	{
+		n = *((uint64_t*) hashVal);
+	}
+	else 
+	{
+		n = 0;
+	}
+
 	n += reductionNumber;
 	string outString="";
 	for(int i=0; i<numChars; i++)
@@ -14,17 +23,22 @@ string RainbowTable::reduce(unsigned char* hashVal, int reductionNumber)
 	return outString;
 }
 
-unsigned char* RainbowTable::applyHash(string password)
+unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 {
-	unsigned char* ret = new unsigned char[20];
-	
-	ret=SHA1((const unsigned char*) password.c_str(), password.length(), NULL);
-	for(int i=0; i<20; i++)
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+	const EVP_MD *md = EVP_md5();
+	unsigned int size;
+
+	EVP_DigestInit_ex(mdctx, md, NULL);
+	EVP_DigestUpdate(mdctx, password.c_str(), password.length());
+	EVP_DigestFinal(mdctx, result, &size);
+
+	for(int i=0; i<size; i++)
 	{
-		printf("%2x",ret[i]);
+		printf("%2x",result[i]);
 	}
 	printf(" ");
-	return ret;
+	return size;
 }
 
 RainbowTable::RainbowTable(int chainLength, string dictName)
@@ -37,11 +51,11 @@ RainbowTable::RainbowTable(int chainLength, string dictName)
 	{
 		string currKey = startKey;
 		cout << startKey << " ";
+		unsigned char* hashVal = new unsigned char[EVP_MAX_MD_SIZE];
 		for(int i=0; i<chainLength; i++)
 		{
-			unsigned char* hashVal = applyHash(currKey);
-			currKey=reduce(hashVal, i);
-			delete[] hashVal;
+			unsigned int size = applyHash(currKey, hashVal);
+			currKey=reduce(hashVal, size, i);
 			cout << currKey << " " ;
 		}
 		table[currKey]=startKey;
