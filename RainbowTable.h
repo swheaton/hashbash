@@ -19,11 +19,15 @@ class RainbowTable
 		RainbowTable(int chainLength, string dictName, bool variants); 	//TODO: Write a version where we end up with ~1000 variants on each dictionary entry
 		RainbowTable(int numChains, int chainLength);			
 		void outputToFile(string fileName);
-		string lookup(char[]);
+		string lookup(unsigned char* hashVal);
 		
 	private:
+		unsigned _chainLength;
+		unordered_map<string,string> table;
+		
 		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
 		unsigned int applyHash(string password, unsigned char* result);
-		unordered_map<string,string> table;
+		string walkChain(string currKey, unsigned char* lookupHash);
+		bool equalHashes(unsigned char* hash1, unsigned char* hash2, unsigned size);
 };
 #endif
