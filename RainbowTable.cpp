@@ -2,6 +2,15 @@
 #define numChars 8
 #define keyspacesize 217180147158
 
+void RainbowTable::outputToFile(string filename)
+{
+	ofstream fout(filename);
+	for (auto it = table.begin(); it != table.end(); it++)
+	{
+		fout << (*it).first << " " << (*it).second << "\n";
+	}
+}
+
 string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
 	uint64_t n;
@@ -48,11 +57,36 @@ unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 	return size;
 }
 
+RainbowTable::RainbowTable(string filename)
+{
+	ifstream fin(filename);
+	if(!fin)
+	{
+		cout << "Couldn't open rainbow table file\n";
+		exit(1);
+	}
+	string key;
+	while (fin >> key)
+	{
+		fin >> table[key];
+	}
+}
+
+RainbowTable::RainbowTable(int chainLength, int numChains)
+{
+	_chainLength = chainLength;
+}
+
 RainbowTable::RainbowTable(int chainLength, string dictName)
 {
 	_chainLength = chainLength;
 	ifstream fin(dictName);
 	mdctx = EVP_MD_CTX_create();
+	if(!fin)
+	{
+		cerr << "Couldn't open dictionary file\n";
+		exit(1);
+	}
 	//check errors
 	
 	string startKey;

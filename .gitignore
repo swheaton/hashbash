@@ -2,3 +2,13 @@
 test
 
 test.dSYM/Contents/Info.plist
+
+*.plist
+
+hashbash.dSYM/Contents/Resources/DWARF/hashbash
+
+hashbash
+
+*.o
+
+out.txt
