@@ -1,6 +1,12 @@
 #ifndef RAINBOW_TABLE_H
 #define RAINBOW_TABLE_H
 
+
+/*
+Stuart's MacBook can generate ~ 562 chains of length 2000 per second
+
+*/
+
 #include <unordered_map>
 #include <fstream>
 #include <iostream>
@@ -10,12 +16,14 @@ using std::unordered_map;
 using std::cout;
 using std::string;
 using std::ifstream;
+using std::ofstream;
+using std::cerr;
 class RainbowTable
 {
 	public:
 		RainbowTable(string fileName);
 		RainbowTable(int chainLength, string dictName);
-		RainbowTable(int numChains, int chainLength);
+		RainbowTable(int chainLength, int numChains);
 		void outputToFile(string fileName);
 		string lookup(unsigned char* hashVal);
 		

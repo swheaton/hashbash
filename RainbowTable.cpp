@@ -2,6 +2,15 @@
 #define numChars 8
 #define keyspacesize 217180147158
 
+void RainbowTable::outputToFile(string filename)
+{
+	ofstream fout(filename);
+	for (auto it = table.begin(); it != table.end(); it++)
+	{
+		fout << (*it).first << " " << (*it).second << "\n";
+	}
+}
+
 string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
 	uint64_t n;
@@ -39,33 +48,58 @@ unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 
 	for(int i=0; i<size; i++)
 	{
-		printf("%02x",result[i]);
+		//printf("%02x",result[i]);
 	}
-	printf(" ");
+	//printf(" ");
 	return size;
+}
+
+RainbowTable::RainbowTable(string filename)
+{
+	ifstream fin(filename);
+	if(!fin)
+	{
+		cout << "Couldn't open rainbow table file\n";
+		exit(1);
+	}
+	string key;
+	while (fin >> key)
+	{
+		fin >> table[key];
+	}
+}
+
+RainbowTable::RainbowTable(int chainLength, int numChains)
+{
+	_chainLength = chainLength;
 }
 
 RainbowTable::RainbowTable(int chainLength, string dictName)
 {
 	_chainLength = chainLength;
 	ifstream fin(dictName);
+	if(!fin)
+	{
+		cerr << "Couldn't open dictionary file\n";
+		exit(1);
+	}
 	//check errors
 	
 	string startKey;
 	while(fin >> startKey)
 	{
 		string currKey = startKey;
-		cout << startKey << " ";
+		//cout << startKey << " ";
 		unsigned char* hashVal = new unsigned char[EVP_MAX_MD_SIZE];
 		for(int i=0; i<chainLength-1; i++)
 		{
 			unsigned int size = applyHash(currKey, hashVal);
 			currKey=reduce(hashVal, size, i);
-			cout << currKey << " " ;
+			//cout << currKey << " " ;
 		}
 		delete hashVal;
 		table[currKey]=startKey;
-		cout << "\n";
+		//cout << "\n";
 	}
 }
 
@@ -97,14 +131,13 @@ string RainbowTable::walkChain(string currKey, unsigned char* lookupHash)
 
 string RainbowTable::lookup(unsigned char* hashVal)
 {
-	cout << "lookup time!" << std::endl;
 	for (int startReduceStep = _chainLength - 2; 
 		startReduceStep >= 0; startReduceStep--)
 	{
 		//First reduction
 		unsigned char* tmpHash = new unsigned char[EVP_MAX_MD_SIZE];
 		string currReduction = reduce(hashVal, 128, startReduceStep);
-		cout << "reduce " << startReduceStep << " " << currReduction << std::endl;
+		//cout << "reduce " << startReduceStep << " " << currReduction << std::endl;
 		
 		//Middle hash-reductions
 		for (int midReduceStep = startReduceStep + 1;
@@ -112,7 +145,7 @@ string RainbowTable::lookup(unsigned char* hashVal)
 		{
 			unsigned size = applyHash(currReduction, tmpHash);
 			currReduction = reduce(tmpHash, size, midReduceStep);
-			cout << "reduce " << midReduceStep << " " << currReduction << std::endl;
+			//cout << "reduce " << midReduceStep << " " << currReduction << std::endl;
 		}
 		delete tmpHash;
 		//Try to find the final reduction in the table
