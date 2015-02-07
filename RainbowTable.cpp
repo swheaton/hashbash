@@ -27,9 +27,17 @@ string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reduc
 	return outString;
 }
 
+void RainbowTable::printHash(unsigned char* hash, unsigned int size)
+{
+	for(int i=0; i<size; i++)
+	{
+		printf("%02x", hash[i]);
+	}
+	printf(" ");
+}
+
 unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 {
-	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
 	const EVP_MD *md = EVP_md5();
 	unsigned int size;
 
@@ -37,11 +45,6 @@ unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 	EVP_DigestUpdate(mdctx, password.c_str(), password.length());
 	EVP_DigestFinal(mdctx, result, &size);
 
-	for(int i=0; i<size; i++)
-	{
-		printf("%02x",result[i]);
-	}
-	printf(" ");
 	return size;
 }
 
@@ -49,23 +52,27 @@ RainbowTable::RainbowTable(int chainLength, string dictName)
 {
 	_chainLength = chainLength;
 	ifstream fin(dictName);
+	mdctx = EVP_MD_CTX_create();
 	//check errors
 	
 	string startKey;
+	int key = 1;
 	while(fin >> startKey)
 	{
 		string currKey = startKey;
-		cout << startKey << " ";
 		unsigned char* hashVal = new unsigned char[EVP_MAX_MD_SIZE];
 		for(int i=0; i<chainLength-1; i++)
 		{
 			unsigned int size = applyHash(currKey, hashVal);
 			currKey=reduce(hashVal, size, i);
-			cout << currKey << " " ;
 		}
-		delete hashVal;
+		delete[] hashVal;
 		table[currKey]=startKey;
-		cout << "\n";
+
+		if(key % 1000 == 0)
+			cout << "processing key " << key << "\n";
+
+		key++;
 	}
 }
 		
@@ -73,10 +80,11 @@ RainbowTable::RainbowTable(string fileName)
 {
 	ifstream fin(fileName);
 	string head, tail;
+	mdctx = EVP_MD_CTX_create();
 
+	fin >> _chainLength;
 	while(fin >> head >> tail)
 	{
-		cout << head << " -?-> " << tail << "\n";
 		table[tail] = head;
 	}
 
@@ -87,7 +95,7 @@ RainbowTable::RainbowTable(string fileName)
 void RainbowTable::outputToFile(string fileName)
 {
 	ofstream fout(fileName);
-	
+	fout << _chainLength << "\n";
 	for(auto iter = table.begin(); iter != table.end(); ++iter)
 	{
 		fout << iter->second << " " << iter->first << "\n";
@@ -124,14 +132,12 @@ string RainbowTable::walkChain(string currKey, unsigned char* lookupHash)
 
 string RainbowTable::lookup(unsigned char* hashVal)
 {
-	cout << "lookup time!" << std::endl;
 	for (int startReduceStep = _chainLength - 2; 
 		startReduceStep >= 0; startReduceStep--)
 	{
 		//First reduction
 		unsigned char* tmpHash = new unsigned char[EVP_MAX_MD_SIZE];
 		string currReduction = reduce(hashVal, 128, startReduceStep);
-		cout << "reduce " << startReduceStep << " " << currReduction << std::endl;
 		
 		//Middle hash-reductions
 		for (int midReduceStep = startReduceStep + 1;
@@ -139,7 +145,6 @@ string RainbowTable::lookup(unsigned char* hashVal)
 		{
 			unsigned size = applyHash(currReduction, tmpHash);
 			currReduction = reduce(tmpHash, size, midReduceStep);
-			cout << "reduce " << midReduceStep << " " << currReduction << std::endl;
 		}
 		delete tmpHash;
 		//Try to find the final reduction in the table
@@ -155,4 +160,9 @@ string RainbowTable::lookup(unsigned char* hashVal)
 		}
 	}
 	return "";
+}
+
+RainbowTable::~RainbowTable()
+{
+	EVP_MD_CTX_destroy(mdctx);
 }

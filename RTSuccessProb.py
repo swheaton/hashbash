@@ -38,3 +38,5 @@ print int(keySpace)
 print ""
 print "Probability of success for a rainbow table of these dimensions is:"
 print findSuccessProb(keySpace)
+print "Rainbow table size in bytes is:"
+print ((2*int(argv[4])+2)*int(argv[1]))

@@ -20,12 +20,15 @@ class RainbowTable
 		RainbowTable(int numChains, int chainLength);			
 		void outputToFile(string fileName);
 		string lookup(unsigned char* hashVal);
+		~RainbowTable();
 		
 	private:
 		unsigned _chainLength;
+		EVP_MD_CTX *mdctx;
 		unordered_map<string,string> table;
 		
 		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
+		void printHash(unsigned char* hash, unsigned int size);
 		unsigned int applyHash(string password, unsigned char* result);
 		string walkChain(string currKey, unsigned char* lookupHash);
 		bool equalHashes(unsigned char* hash1, unsigned char* hash2, unsigned size);
