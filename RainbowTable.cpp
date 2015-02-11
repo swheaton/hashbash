@@ -1,6 +1,5 @@
 #include "RainbowTable.h"
-#define numChars 8
-#define keyspacesize 217180147158
+#define keyspacesize 503611515004
 
 string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
@@ -21,17 +20,17 @@ string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reduc
 string RainbowTable::numberToKey(uint64_t n)
 {
 	n %= keyspacesize;
-	string outString(1,(char) ((n % 26) + 'a'));
-	n /= 26;
-	while (n > 0)
+	string outString(1, FirstLetter[n % 52]);
+	int previous = 52;
+	while (n >= previous)
 	{
+		n /= previous;
 		n--;
-		outString += (char)((n % 26) + 'a');
-		n /= 26;
+		outString += Domain[n % 46];
+		previous = 46;
 	}
 	return outString;
 }
-
 
 void RainbowTable::printHash(unsigned char* hash, unsigned int size)
 {
@@ -108,7 +107,7 @@ RainbowTable::RainbowTable(int chainLength, string dictName)
 		delete[] hashVal;
 		table[currKey]=startKey;
 
-		if(key % 1000 == 0)
+		if(key % 10000 == 0)
 			cout << "processing key " << key << "\n";
 
 		key++;

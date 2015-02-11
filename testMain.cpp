@@ -9,22 +9,18 @@ using std::cin;
 int main(int argc, char** argv)
 {
 	int process = atoi(argv[1]);
-	int tables = atoi(argv[2]);
-	int chainsPerTable = atoi(argv[3]);
-	int reductions = atoi(argv[4]);
 
-	cout << process << " " << tables << " " << chainsPerTable << " " << reductions << "\n";
-
-	for(int i=0; i<tables; i++)
+	for(int i=2; i<argc; i++)
 	{
-		RainbowTable rt(reductions,chainsPerTable);
+		RainbowTable rt(2000, string(argv[i]));
 
 		cout << "Done with table\n";
 
 		char filename[100000];
-		sprintf(filename, "/media/benvds/522665A726658CB3/RAINBOWTABLE/proc%dtable%d.rt", process, i);
+		sprintf(filename, "/media/benvds/522665A726658CB3/RAINBOWTABLE/dictCombo/proc%dtable%d.rt", process, i-2);
 		rt.outputToFile(filename);
 	}
+
 
 	string password = "";
 	/*while (cin >> password)

@@ -36,6 +36,8 @@ class RainbowTable
 		unsigned _chainLength;
 		EVP_MD_CTX *mdctx;
 		unordered_map<string,string> table;
+		const string FirstLetter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		const string Domain = "abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()";
 		
 		string numberToKey(uint64_t n);
 		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
