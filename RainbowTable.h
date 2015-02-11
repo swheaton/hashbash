@@ -11,6 +11,7 @@ Stuart's MacBook can generate ~ 562 chains of length 2000 per second
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <random>
 #include <openssl/evp.h>
 using std::unordered_map;
 using std::cout;
@@ -18,6 +19,7 @@ using std::string;
 using std::ifstream;
 using std::ofstream;
 using std::cerr;
+using std::mt19937_64;
 class RainbowTable
 {
 	public:
@@ -25,6 +27,7 @@ class RainbowTable
 		RainbowTable(int chainLength, string dictName);
 		RainbowTable(int chainLength, string dictName, bool variants); 	//TODO: Write a version where we end up with ~1000 variants on each dictionary entry
 		RainbowTable(int chainLength, int numChains);
+		void produceTable(int chainLength, int numChains, string outputFile);
 		void outputToFile(string fileName);
 		string lookup(unsigned char* hashVal);
 		~RainbowTable();
@@ -34,6 +37,7 @@ class RainbowTable
 		EVP_MD_CTX *mdctx;
 		unordered_map<string,string> table;
 		
+		string numberToKey(uint64_t n);
 		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
 		void printHash(unsigned char* hash, unsigned int size);
 		unsigned int applyHash(string password, unsigned char* result);

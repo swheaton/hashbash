@@ -1,15 +1,31 @@
 #include "RainbowTable.h"
 #include <openssl/evp.h>
 #include <iostream>
+#include<string.h>
 using std::cout;
 using std::cin;
 //typedef hash char[20];
 
-int main()
+int main(int argc, char** argv)
 {
-	RainbowTable rt(2000,"/usr/share/dict/web2");
-	cout << "Done with table\n";
-	
+	int process = atoi(argv[1]);
+	int tables = atoi(argv[2]);
+	int chainsPerTable = atoi(argv[3]);
+	int reductions = atoi(argv[4]);
+
+	cout << process << " " << tables << " " << chainsPerTable << " " << reductions << "\n";
+
+	for(int i=0; i<tables; i++)
+	{
+		RainbowTable rt(reductions,chainsPerTable);
+
+		cout << "Done with table\n";
+
+		char filename[100000];
+		sprintf(filename, "/media/benvds/522665A726658CB3/RAINBOWTABLE/proc%dtable%d.rt", process, i);
+		rt.outputToFile(filename);
+	}
+
 	string password = "";
 	/*while (cin >> password)
 	{

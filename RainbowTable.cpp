@@ -2,15 +2,6 @@
 #define numChars 8
 #define keyspacesize 217180147158
 
-void RainbowTable::outputToFile(string filename)
-{
-	ofstream fout(filename);
-	for (auto it = table.begin(); it != table.end(); it++)
-	{
-		fout << (*it).first << " " << (*it).second << "\n";
-	}
-}
-
 string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reductionNumber)
 {
 	uint64_t n;
@@ -24,6 +15,11 @@ string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reduc
 	}
 
 	n += reductionNumber;
+	return numberToKey(n);
+}
+
+string RainbowTable::numberToKey(uint64_t n)
+{
 	n %= keyspacesize;
 	string outString(1,(char) ((n % 26) + 'a'));
 	n /= 26;
@@ -36,6 +32,7 @@ string RainbowTable::reduce(unsigned char* hashVal, unsigned int size, int reduc
 	return outString;
 }
 
+
 void RainbowTable::printHash(unsigned char* hash, unsigned int size)
 {
 	for(int i=0; i<size; i++)
@@ -47,7 +44,7 @@ void RainbowTable::printHash(unsigned char* hash, unsigned int size)
 
 unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 {
-	const EVP_MD *md = EVP_md5();
+	const EVP_MD *md = EVP_sha1();
 	unsigned int size;
 
 	EVP_DigestInit_ex(mdctx, md, NULL);
@@ -57,24 +54,32 @@ unsigned int RainbowTable::applyHash(string password, unsigned char* result)
 	return size;
 }
 
-RainbowTable::RainbowTable(string filename)
-{
-	ifstream fin(filename);
-	if(!fin)
-	{
-		cout << "Couldn't open rainbow table file\n";
-		exit(1);
-	}
-	string key;
-	while (fin >> key)
-	{
-		fin >> table[key];
-	}
-}
-
 RainbowTable::RainbowTable(int chainLength, int numChains)
 {
 	_chainLength = chainLength;
+	mdctx = EVP_MD_CTX_create();
+	std::random_device rd;
+	mt19937_64 randomNumber(rd());
+
+	int key = 1;
+	for(int i=0; i<numChains; i++)
+	{
+		string startKey = numberToKey(randomNumber());
+		string currKey = startKey;
+		unsigned char* hashVal = new unsigned char[EVP_MAX_MD_SIZE];
+		for(int i=0; i<chainLength-1; i++)
+		{
+			unsigned int size = applyHash(currKey, hashVal);
+			currKey=reduce(hashVal, size, i);
+		}
+		delete[] hashVal;
+		table[currKey]=startKey;
+
+		if(key % 10000 == 0)
+			cout << "processing key " << key << "\n";
+
+		key++;
+	}
 }
 
 RainbowTable::RainbowTable(int chainLength, string dictName)
@@ -108,11 +113,17 @@ RainbowTable::RainbowTable(int chainLength, string dictName)
 
 		key++;
 	}
+
 }
 		
 RainbowTable::RainbowTable(string fileName)
 {
 	ifstream fin(fileName);
+	if(!fin)
+	{
+		cout << "Couldn't open rainbow table file\n";
+		exit(1);
+	}
 	string head, tail;
 	mdctx = EVP_MD_CTX_create();
 
@@ -136,6 +147,36 @@ void RainbowTable::outputToFile(string fileName)
 	}
 	fout.close();
 	return;
+}
+
+void RainbowTable::produceTable(int chainLength, int numChains, string outputFile)
+{	
+	ofstream fout(outputFile);
+	fout << chainLength << "\n";
+	std::random_device rd;
+	mt19937_64 randomNumber(rd());
+
+	int key = 1;
+	for(int i=0; i<numChains; i++)
+	{
+		string startKey = numberToKey(randomNumber());
+		string currKey = startKey;
+		unsigned char* hashVal = new unsigned char[EVP_MAX_MD_SIZE];
+		for(int i=0; i<chainLength-1; i++)
+		{
+			unsigned int size = applyHash(currKey, hashVal);
+			currKey=reduce(hashVal, size, i);
+		}
+		delete[] hashVal;
+		table[currKey]=startKey;
+		fout << startKey << " " << currKey << "\n";
+
+		if(key % 10000 == 0)
+			cout << "processing key " << key << "\n";
+
+		key++;
+	}
+	fout.close();
 }
 
 bool RainbowTable::equalHashes(unsigned char* hash1, unsigned char* hash2, unsigned size)
