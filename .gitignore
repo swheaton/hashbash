@@ -12,3 +12,7 @@ hashbash
 *.o
 
 out.txt
+
+hashes/
+lowercase/
+passwordlists/
