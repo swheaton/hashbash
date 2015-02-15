@@ -201,7 +201,7 @@ string RainbowTable::walkChain(string currKey, unsigned char* lookupHash)
 		}
 		currKey = reduce(tmpHash, size, reduceStep);
 	}
-	
+	return "";
 }
 
 string RainbowTable::lookup(unsigned char* hashVal)
