@@ -41,7 +41,7 @@ void RainbowTable::printHash(unsigned char* hash, unsigned int size)
 	printf(" ");
 }
 
-unsigned int RainbowTable::applyHash(string password, unsigned char* result)
+unsigned int RainbowTable::applyHash(string &password, unsigned char* result)
 {
 	const EVP_MD *md = EVP_sha1();
 	unsigned int size;
@@ -201,7 +201,7 @@ string RainbowTable::walkChain(string currKey, unsigned char* lookupHash)
 		}
 		currKey = reduce(tmpHash, size, reduceStep);
 	}
-	
+	return "";
 }
 
 string RainbowTable::lookup(unsigned char* hashVal)
@@ -220,6 +220,7 @@ string RainbowTable::lookup(unsigned char* hashVal)
 			unsigned size = applyHash(currReduction, tmpHash);
 			currReduction = reduce(tmpHash, size, midReduceStep);
 		}
+		
 		delete tmpHash;
 		//Try to find the final reduction in the table
 		auto foundEndpoint = table.find(currReduction);

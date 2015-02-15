@@ -3,7 +3,7 @@
 
 
 /*
-Stuart's MacBook can generate ~ 562 chains of length 2000 per second
+Stuart's MacBook can generate ~ 712 chains of length 2000 per second
 
 */
 
@@ -42,7 +42,7 @@ class RainbowTable
 		string numberToKey(uint64_t n);
 		string reduce(unsigned char* hashVal, unsigned int size, int reductionNumber);
 		void printHash(unsigned char* hash, unsigned int size);
-		unsigned int applyHash(string password, unsigned char* result);
+		unsigned int applyHash(string &password, unsigned char* result);
 		string walkChain(string currKey, unsigned char* lookupHash);
 		bool equalHashes(unsigned char* hash1, unsigned char* hash2, unsigned size);
 };
