@@ -2,7 +2,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
+#include <list>
 #include <dirent.h>
 //#include <cstring>
 using std::cin;
@@ -151,7 +151,7 @@ int main(int argc, char * argv[])
 	}
 	
 	//Read in hashes into vector
-	std::vector<unsigned char*> hashes;
+	std::list<std::pair<int,unsigned char*>> hashes;
 	std::ifstream fin(hashFile);
 	if(!fin)
 	{
@@ -159,6 +159,7 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 	string hash;
+	int hashCount=0;
 	while (fin >> hash)
 	{
 		unsigned char* byteVal = new unsigned char[EVP_MAX_MD_SIZE];
@@ -176,7 +177,7 @@ int main(int argc, char * argv[])
 					break;
 				}
 			}
-			hashes.push_back(byteVal);
+			hashes.push_back(std::make_pair(hashCount++,byteVal));
 		}
 	}
 	int numHashes = hashes.size();
@@ -192,7 +193,7 @@ int main(int argc, char * argv[])
 	}
 	
 	//For each file in directory
-	while((entry = readdir(dp)))
+	while((entry = readdir(dp)) && !hashes.empty())
 	{
 		if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name,".."))
 			continue;
@@ -200,22 +201,30 @@ int main(int argc, char * argv[])
 		string rtName = entry->d_name;
 		cout << "loading..." << rtName << std::endl;
 		RainbowTable rt(directory+"/"+rtName);
-		cout << "num hashes: " << numHashes << std::endl;
-		for(int k=0; k<numHashes; k++)
+		for(auto iter = hashes.begin(); iter != hashes.end(); iter++)
 		{
-			cout << k << std::endl;
-			string found = rt.lookup(hashes[k]);
+			//cout << k << std::endl;
+			string found = rt.lookup((*iter).second);
 			if(found != "")
 			{
-				cout << "hash " << k << " is: " << found << "\n";
+				cout << "hash " << (*iter).first << " is: " << found << "\n";
+				delete (*iter).second;
+				hashes.erase(iter);
 			}
 		}
-		break;
 	}
-	
-	for(int k=0; k<numHashes; k++)
+	if(hashes.empty())
 	{
-		delete hashes[k];
+		cout << "\n============\nCongrats, you found all the passwords!\n";
+	}
+	else
+	{
+		cout << "\n=============\nWe found " << numHashes - hashes.size();
+		cout << " out of " << numHashes << "\n";
+	}
+	for(auto iter = hashes.begin(); iter != hashes.end(); iter++)
+	{
+		delete (*iter).second;
 	}
 	closedir(dp);
 	
