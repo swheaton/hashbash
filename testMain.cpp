@@ -10,15 +10,16 @@ int main(int argc, char** argv)
 {
 	int process = atoi(argv[1]);
 
+	
+
 	for(int i=2; i<argc; i++)
 	{
-		RainbowTable rt(2000, string(argv[i]));
+		RainbowTable rt(string(argv[i]));
 
-		cout << "Done with table\n";
+		cout << "Done with table " << (i-2) << "\n";
 
 		char filename[100000];
 		sprintf(filename, "/media/benvds/522665A726658CB3/RAINBOWTABLE/dictCombo/proc%dtable%d.rt", process, i-2);
-		rt.outputToFile(filename);
 	}
 
 

@@ -204,6 +204,41 @@ string RainbowTable::walkChain(string currKey, unsigned char* lookupHash)
 	return "";
 }
 
+void  RainbowTable::generateReductions(list<std::pair<int, unsigned char*> >& hashes, unsigned int reductions, list< vector< string > >& precomputed)
+{
+	precomputed.resize(hashes.size());
+
+	unsigned char* tmpHash = new unsigned char[EVP_MAX_MD_SIZE];
+	
+	auto  preiter = precomputed.begin();
+	for(auto hashiter = hashes.begin(); hashiter != hashes.end() && preiter != precomputed.end(); hashiter++,preiter++)
+	{	
+		vector<string>& temporary = *preiter;
+		temporary.reserve(reductions);
+
+		for (int startReduceStep = reductions - 2; 
+			startReduceStep >= 0; startReduceStep--)
+		{
+			//First reduction
+			string currReduction = reduce((*hashiter).second, 128, startReduceStep);
+			
+			//Middle hash-reductions
+			for (int midReduceStep = startReduceStep + 1;
+				midReduceStep < reductions - 1; midReduceStep++)
+			{
+				unsigned size = applyHash(currReduction, tmpHash);
+				currReduction = reduce(tmpHash, size, midReduceStep);
+			}
+
+			temporary.push_back(currReduction);
+		}
+	}
+
+	delete tmpHash;
+}
+
+
+
 string RainbowTable::lookup(unsigned char* hashVal)
 {
 	for (int startReduceStep = _chainLength - 2; 
@@ -236,6 +271,27 @@ string RainbowTable::lookup(unsigned char* hashVal)
 	}
 	return "";
 }
+
+
+string RainbowTable::batchLookup(vector<string>& endpoints, unsigned char * hashVal)
+{
+	for (int endpoint=0; endpoint<endpoints.size(); endpoint++)
+	{
+		//Try to find the final reduction in the table
+		auto foundEndpoint = table.find(endpoints[endpoint]);
+		
+		//We found it! Time to walk that chain and look for the password
+		string foundPass = "";
+		if(foundEndpoint != table.end())
+		{
+			foundPass = walkChain((*foundEndpoint).second, hashVal);
+			if(foundPass.length() > 0)
+				return foundPass;
+		}
+	}
+	return "";
+}
+
 
 RainbowTable::~RainbowTable()
 {

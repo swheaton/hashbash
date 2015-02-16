@@ -11,14 +11,17 @@ Stuart's MacBook can generate ~ 712 chains of length 2000 per second
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <list>
 #include <random>
 #include <openssl/evp.h>
 using std::unordered_map;
 using std::cout;
+using std::vector;
 using std::string;
 using std::ifstream;
 using std::ofstream;
 using std::cerr;
+using std::list;
 using std::mt19937_64;
 class RainbowTable
 {
@@ -29,6 +32,8 @@ class RainbowTable
 		RainbowTable(int chainLength, int numChains);
 		void produceTable(int chainLength, int numChains, string outputFile);
 		void outputToFile(string fileName);
+		string batchLookup(vector<string>& endpoints, unsigned char * hashVal);
+		void generateReductions(list<std::pair<int, unsigned char*> >& hashes, unsigned int reductions, list< vector< string > >& precomputed);
 		string lookup(unsigned char* hashVal);
 		~RainbowTable();
 		

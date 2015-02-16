@@ -4,6 +4,8 @@
 #include <fstream>
 #include <list>
 #include <dirent.h>
+#include <string.h>
+#include <cassert>
 //#include <cstring>
 using std::cin;
 using std::cerr;
@@ -151,7 +153,7 @@ int main(int argc, char * argv[])
 	}
 	
 	//Read in hashes into vector
-	std::list<std::pair<int,unsigned char*>> hashes;
+	list<std::pair<int, unsigned char*> > hashes;
 	std::ifstream fin(hashFile);
 	if(!fin)
 	{
@@ -162,11 +164,12 @@ int main(int argc, char * argv[])
 	int hashCount=0;
 	while (fin >> hash)
 	{
-		unsigned char* byteVal = new unsigned char[EVP_MAX_MD_SIZE];
 		char *endptr;
 		unsigned hlength = hash.length();
 		if(hlength == 40)
 		{
+			unsigned char* byteVal = new unsigned char[EVP_MAX_MD_SIZE];
+			assert(byteVal != NULL);
 			for(int k=0; k<hlength; k+=2)
 			{
 				char buf[5] = {'0','x',hash[k],hash[k+1],0};
@@ -181,6 +184,10 @@ int main(int argc, char * argv[])
 		}
 	}
 	int numHashes = hashes.size();
+
+	RainbowTable dummy(1,1);
+	list<vector<string> > precomputed;	
+	dummy.generateReductions(hashes, 2200, precomputed);
 	
 	//Read directory
 	struct dirent *entry;
@@ -191,8 +198,10 @@ int main(int argc, char * argv[])
 		cerr << "Directory can't be opened\n";
 		return 1;
 	}
-	
+
 	//For each file in directory
+	int foundCount=0;
+	vector<bool> deleted(hashes.size(), false);
 	while((entry = readdir(dp)) && !hashes.empty())
 	{
 		if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name,".."))
@@ -201,25 +210,32 @@ int main(int argc, char * argv[])
 		string rtName = entry->d_name;
 		cout << "loading..." << rtName << std::endl;
 		RainbowTable rt(directory+"/"+rtName);
-		for(auto iter = hashes.begin(); iter != hashes.end(); iter++)
+		auto preiter = precomputed.begin();
+		auto hashiter = hashes.begin();
+		for(int i=0; i<deleted.size() && hashiter != hashes.end() && preiter != precomputed.end(); hashiter++,preiter++, i++)
 		{
-			//cout << k << std::endl;
-			string found = rt.lookup((*iter).second);
-			if(found != "")
+			if(!deleted[i])
 			{
-				cout << "hash " << (*iter).first << " is: " << found << "\n";
-				delete (*iter).second;
-				hashes.erase(iter);
+				string found = rt.batchLookup(*preiter, (*hashiter).second);
+				if(found != "")
+				{
+					cout << "hash " << (*hashiter).first << " is: " << found << "\n";
+					foundCount++;
+					deleted[i] = true;
+					//delete (*hashiter).second;
+					//precomputed.erase(preiter);
+					//hashes.erase(hashiter);
+				}
 			}
 		}
 	}
-	if(hashes.empty())
+	if(foundCount == numHashes)
 	{
 		cout << "\n============\nCongrats, you found all the passwords!\n";
 	}
 	else
 	{
-		cout << "\n=============\nWe found " << numHashes - hashes.size();
+		cout << "\n=============\nWe found " << foundCount;
 		cout << " out of " << numHashes << "\n";
 	}
 	for(auto iter = hashes.begin(); iter != hashes.end(); iter++)
@@ -227,6 +243,6 @@ int main(int argc, char * argv[])
 		delete (*iter).second;
 	}
 	closedir(dp);
-	
+
 	return 0;
 }
